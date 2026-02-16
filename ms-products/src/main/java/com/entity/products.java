@@ -25,7 +25,7 @@ public class ProductDTO {
 
     @NotNull(message = "{}")
     @DecimalMin(value = "0.01", message = "{}")
-    private BigDecimal price;
+    private Long price;
 
     @Min(value = 0, message = "{}")
     private Integer stock;
