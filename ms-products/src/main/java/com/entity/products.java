@@ -17,7 +17,7 @@ public class ProductDTO {
 
     private String code;
 
-    private BigDecimal price;
+    private Long price;
 
     private Integer stock;
 
