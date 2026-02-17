@@ -1,4 +1,4 @@
-package com.ma_products.ms_products.config;
+package com.ms_products.ms_products.config;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;

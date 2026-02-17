@@ -1,3 +1,5 @@
+package com.ms_products.ms_products.entity;
+
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
