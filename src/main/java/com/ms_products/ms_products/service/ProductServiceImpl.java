@@ -1,5 +1,6 @@
 package com.ms_products.ms_products.service;
 
+import com.ms_products.ms_products.client.UserClient; // <--- Importamos el cliente
 import com.ms_products.ms_products.dto.ProductRequestDTO;
 import com.ms_products.ms_products.dto.ProductResponseDTO;
 import com.ms_products.ms_products.entity.ProductEntity;
@@ -15,11 +16,11 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final UserClient userClient; // <--- Inyección del cliente Feign
 
     // CREATE
     @Override
     public ProductResponseDTO save(ProductRequestDTO request) {
-
         productRepository.findByCode(request.getCode())
                 .ifPresent(p -> {
                     throw new RuntimeException("Product code already exists");
@@ -29,9 +30,17 @@ public class ProductServiceImpl implements ProductService {
         return mapToDTO(productRepository.save(product));
     }
 
-    // UPDATE
+    // UPDATE - Aquí aplicamos la validación del Laboratorio
     @Override
-    public ProductResponseDTO update(Long id, ProductRequestDTO request) {
+    public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) { // <-- Agregamos userId
+
+        // 1. Llamada a MS USUARIOS vía Feign
+        Boolean isAdmin = userClient.isAdmin(userId);
+
+        // 2. Validación de respuesta booleana
+        if (isAdmin == null || !isAdmin) {
+            throw new RuntimeException("Acceso denegado: Se requieren permisos de ADMIN para modificar productos.");
+        }
 
         ProductEntity existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -45,7 +54,8 @@ public class ProductServiceImpl implements ProductService {
         return mapToDTO(productRepository.save(existingProduct));
     }
 
-    // DELETE
+    // ... (Los demás métodos DELETE, findById y findAll se quedan igual)
+
     @Override
     public void delete(Long id) {
         ProductEntity product = productRepository.findById(id)
@@ -53,7 +63,6 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
-    // GET BY ID
     @Override
     public ProductResponseDTO findById(Long id) {
         ProductEntity product = productRepository.findById(id)
@@ -61,7 +70,6 @@ public class ProductServiceImpl implements ProductService {
         return mapToDTO(product);
     }
 
-    // GET ALL
     @Override
     public List<ProductResponseDTO> findAll() {
         return productRepository.findAll()
