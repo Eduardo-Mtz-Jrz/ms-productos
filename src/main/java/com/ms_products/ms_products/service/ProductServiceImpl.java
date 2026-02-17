@@ -14,54 +14,54 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
-    // AGREGAR
+    // ADD PRODUCT
     @Override
-    public ProductEntity agregar(@NonNull ProductEntity product) {
+    public ProductEntity productAdd(@NonNull ProductEntity product) {
 
         productRepository.findByCode(product.getCode())
                 .ifPresent(p -> {
-                    throw new RuntimeException("El código ya existe");
+                    throw new RuntimeException("Product code already exists");
                 });
 
         return productRepository.save(product);
     }
 
-    // MODIFICAR
+    // UPDATE PRODUCT
     @Override
-    public ProductEntity modificar(Long id, @NonNull ProductEntity product) {
+    public ProductEntity productUpdate(Long id, @NonNull ProductEntity product) {
 
-        ProductEntity existente = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        ProductEntity existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        existente.setName(product.getName());
-        existente.setCode(product.getCode());
-        existente.setPrice(product.getPrice());
-        existente.setStock(product.getStock());
-        existente.setCategory(product.getCategory());
+        existingProduct.setName(product.getName());
+        existingProduct.setCode(product.getCode());
+        existingProduct.setPrice(product.getPrice());
+        existingProduct.setStock(product.getStock());
+        existingProduct.setCategory(product.getCategory());
 
-        return productRepository.save(existente);
+        return productRepository.save(existingProduct);
     }
 
-    // ELIMINAR
+    // DELETE PRODUCT
     @Override
-    public void eliminar(Long id) {
+    public void productDelete(Long id) {
 
-        ProductEntity existente = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        ProductEntity existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        productRepository.delete(existente);
+        productRepository.delete(existingProduct);
     }
 
-    // CONSULTAR POR ID
+    // GET PRODUCT BY ID
     @Override
-    public ProductEntity obtenerPorId(Long id) {
+    public ProductEntity productGetById(Long id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
-    // LISTAR TODOS
+    // GET ALL PRODUCTS
     @Override
-    public List<ProductEntity> listar() {
+    public List<ProductEntity> productGetAll() {
         return productRepository.findAll();
     }
 }

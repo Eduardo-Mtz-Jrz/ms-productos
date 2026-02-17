@@ -6,13 +6,18 @@ import java.util.List;
 
 public interface ProductService {
 
-    ProductEntity agregar(ProductEntity product);
+    // ADD PRODUCT
+    ProductEntity productAdd(ProductEntity product);
 
-    ProductEntity modificar(Long id, ProductEntity product);
+    // UPDATE PRODUCT
+    ProductEntity productUpdate(Long id, ProductEntity product);
 
-    void eliminar(Long id);
+    // DELETE PRODUCT
+    void productDelete(Long id);
 
-    ProductEntity obtenerPorId(Long id);
+    // GET PRODUCT BY ID
+    ProductEntity productGetById(Long id);
 
-    List<ProductEntity> listar();
+    // GET ALL PRODUCTS
+    List<ProductEntity> productGetAll();
 }
