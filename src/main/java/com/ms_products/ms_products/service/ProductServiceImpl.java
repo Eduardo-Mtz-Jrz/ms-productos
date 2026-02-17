@@ -1,68 +1,94 @@
 package com.ms_products.ms_products.service;
 
+import com.ms_products.ms_products.dto.ProductRequestDTO;
+import com.ms_products.ms_products.dto.ProductResponseDTO;
 import com.ms_products.ms_products.entity.ProductEntity;
 import com.ms_products.ms_products.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
-    // ADD PRODUCT
+    // CREATE
     @Override
-    public ProductEntity productAdd(@NonNull ProductEntity product) {
+    public ProductResponseDTO save(ProductRequestDTO request) {
 
-        productRepository.findByCode(product.getCode())
+        productRepository.findByCode(request.getCode())
                 .ifPresent(p -> {
                     throw new RuntimeException("Product code already exists");
                 });
 
-        return productRepository.save(product);
+        ProductEntity product = mapToEntity(request);
+        return mapToDTO(productRepository.save(product));
     }
 
-    // UPDATE PRODUCT
+    // UPDATE
     @Override
-    public ProductEntity productUpdate(Long id, @NonNull ProductEntity product) {
+    public ProductResponseDTO update(Long id, ProductRequestDTO request) {
 
         ProductEntity existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        existingProduct.setName(product.getName());
-        existingProduct.setCode(product.getCode());
-        existingProduct.setPrice(product.getPrice());
-        existingProduct.setStock(product.getStock());
-        existingProduct.setCategory(product.getCategory());
+        existingProduct.setName(request.getName());
+        existingProduct.setCode(request.getCode());
+        existingProduct.setPrice(request.getPrice());
+        existingProduct.setStock(request.getStock());
+        existingProduct.setCategory(request.getCategory());
 
-        return productRepository.save(existingProduct);
+        return mapToDTO(productRepository.save(existingProduct));
     }
 
-    // DELETE PRODUCT
+    // DELETE
     @Override
-    public void productDelete(Long id) {
-
-        ProductEntity existingProduct = productRepository.findById(id)
+    public void delete(Long id) {
+        ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        productRepository.delete(existingProduct);
+        productRepository.delete(product);
     }
 
-    // GET PRODUCT BY ID
+    // GET BY ID
     @Override
-    public ProductEntity productGetById(Long id) {
-        return productRepository.findById(id)
+    public ProductResponseDTO findById(Long id) {
+        ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        return mapToDTO(product);
     }
 
-    // GET ALL PRODUCTS
+    // GET ALL
     @Override
-    public List<ProductEntity> productGetAll() {
-        return productRepository.findAll();
+    public List<ProductResponseDTO> findAll() {
+        return productRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // MAPPERS
+    private ProductEntity mapToEntity(ProductRequestDTO dto) {
+        ProductEntity product = new ProductEntity();
+        product.setName(dto.getName());
+        product.setCode(dto.getCode());
+        product.setPrice(dto.getPrice());
+        product.setStock(dto.getStock());
+        product.setCategory(dto.getCategory());
+        return product;
+    }
+
+    private ProductResponseDTO mapToDTO(ProductEntity entity) {
+        ProductResponseDTO dto = new ProductResponseDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setCode(entity.getCode());
+        dto.setPrice(entity.getPrice());
+        dto.setStock(entity.getStock());
+        dto.setCategory(entity.getCategory());
+        return dto;
     }
 }
