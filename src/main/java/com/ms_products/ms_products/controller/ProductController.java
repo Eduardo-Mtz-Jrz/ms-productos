@@ -1,9 +1,6 @@
-package com.example.products.controller;
+package com.ms_products.ms_products.controller;
 
-import com.example.products.dto.ProductRequestDTO;
-import com.example.products.dto.ProductResponseDTO;
-import com.example.products.service.ProductService;
-
+import com.ms_products.ms_products.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
