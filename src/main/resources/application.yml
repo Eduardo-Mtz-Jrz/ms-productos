@@ -1,0 +1,17 @@
+# Configuración común a TODOS los entornos
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ms-productos
+
+  profiles:
+    active: local  # ← Define cuál profile usar por defecto
+
+# Configuración de Swagger (común)
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

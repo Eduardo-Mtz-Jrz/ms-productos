@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://dev-server.empresa.com:3307/productos_dev
+    username: dev_user
+    password: ${DB_PASSWORD}    # ← Variable de entorno (seguro)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update          # ← Aún permite cambios en DEV
+    show-sql: false             # ← No mostrar SQL en servidor
+
+logging:
+  level:
+    com.empresa.proyecto: INFO  # ← Menos logs que local
