@@ -1,0 +1,3 @@
+com\ms_products\repository\ProductRepositoryTest.class
+com\ms_products\dto\ProductRequestDTOTest.class
+com\ms_products\service\ProductServiceImplTest.class
