@@ -1,4 +1,4 @@
-package com.ms_products.ms_products;
+package com.ms_products;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

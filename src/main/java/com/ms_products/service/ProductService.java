@@ -1,4 +1,4 @@
-package com.ms_products.ms_products.service;
+package com.ms_products.service;
 
 import com.ms_products.ms_products.dto.ProductRequestDTO;
 import com.ms_products.ms_products.dto.ProductResponseDTO;
