@@ -1,34 +1,43 @@
+package com.ms_products.entity;
+
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import java.util.Set;
+import java.util.HashSet;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "products")
 public class ProductEntity {
 
-    @Null(message = "{product.id.null}")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{product.name.notblank}")
-    @Size(min = 3, max = 100, message = "{product.name.size}")
+    @NotBlank(message = "")
+    @Size(min = 3, max = 100)
     private String name;
 
-    @NotBlank(message = "{product.code.notblank}")
-    @Pattern(regexp = "^PROD-\\d{4}$", message = "{product.code.pattern}")
+    @NotBlank(message = "")
+    @Pattern(regexp = "^PROD-\\d{4}$")
     private String code;
 
-    @NotNull(message = "{product.price.notnull}")
-    @DecimalMin(value = "0.01", message = "{product.price.min}")
-    private Float price;
+    @NotNull(message = "")
+    @DecimalMin(value = "0.01")
+    private Double price;
 
-    @Min(value = 0, message = "{product.stock.min}")
+    @Min(value = 0)
     private Integer stock;
 
-    @NotBlank(message = "{product.category.notblank}")
-    @Size(min = 3, max = 50, message = "{product.category.size}")
-    private String category;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "product_categories",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<CategoryEntity> categories = new HashSet<>();
 }
