@@ -17,7 +17,6 @@ public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Null(message = "{}")
     private Long id;
 
     @NotBlank(message = "{}")

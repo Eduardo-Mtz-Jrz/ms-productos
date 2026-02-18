@@ -1,103 +1,93 @@
 package com.ms_products.ms_products.service;
 
-import com.ms_products.ms_products.client.UserClient; // <--- Importamos el cliente
+import com.ms_products.ms_products.client.UserClient;
 import com.ms_products.ms_products.dto.ProductRequestDTO;
 import com.ms_products.ms_products.dto.ProductResponseDTO;
 import com.ms_products.ms_products.entity.ProductEntity;
+import com.ms_products.ms_products.exception.ProductNotFoundException;
+import com.ms_products.ms_products.exception.UnauthorizedException;
+import com.ms_products.ms_products.mapper.ProductMapper;
 import com.ms_products.ms_products.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final UserClient userClient;
+    private final ProductMapper productMapper;
 
-    // CREATE
     @Override
+    @Transactional
     public ProductResponseDTO save(ProductRequestDTO request) {
+        log.info("Attempting to save product with code: {}", request.getCode());
+
         productRepository.findByCode(request.getCode())
                 .ifPresent(p -> {
-                    throw new RuntimeException("Product code already exists");
+                    log.error("Save failed: Code {} already exists", request.getCode());
+                    throw new IllegalStateException("Product code already exists");
                 });
 
-        ProductEntity product = mapToEntity(request);
-        return mapToDTO(productRepository.save(product));
+        ProductEntity product = productMapper.toEntity(request);
+        ProductEntity savedProduct = productRepository.save(product);
+
+        return productMapper.toDto(savedProduct);
     }
 
-    // UPDATE - Aquí aplicamos la validación del Laboratorio
     @Override
-    public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) { // <-- Agregamos userId
+    @Transactional
+    public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) {
+        log.info("Update requested for product ID: {} by user ID: {}", id, userId);
 
-        // 1. Llamada a MS USUARIOS vía Feigg
-        //IMPORTANTE: cambiar variable para pruebas locales.
-        Boolean isAdmin = userClient.isAdmin(userId);
-        //Boolean isAdmin = false;
-
-        // 2. Validación de respuesta booleana
-        if (isAdmin == null || !isAdmin) {
-            throw new RuntimeException("Access Denied.");
+        // Validación de seguridad: Boolean.TRUE.equals es la forma más segura contra nulls
+        if (!Boolean.TRUE.equals(userClient.isAdmin(userId))) {
+            log.warn("Access denied for user {}: Not an admin", userId);
+            throw new UnauthorizedException("User does not have admin privileges");
         }
 
-        ProductEntity existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        existingProduct.setName(request.getName());
-        existingProduct.setCode(request.getCode());
-        existingProduct.setPrice(request.getPrice());
-        existingProduct.setStock(request.getStock());
-        existingProduct.setCategory(request.getCategory());
-
-        return mapToDTO(productRepository.save(existingProduct));
+        return productRepository.findById(id)
+                .map(existingProduct -> {
+                    // Usamos el mapper para actualizar los campos automáticamente
+                    productMapper.updateEntityFromDto(request, existingProduct);
+                    ProductEntity updatedProduct = productRepository.save(existingProduct);
+                    log.info("Product ID: {} updated successfully", id);
+                    return productMapper.toDto(updatedProduct);
+                })
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
-    //DELETE
     @Override
+    @Transactional
     public void delete(Long id) {
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-        productRepository.delete(product);
+        log.info("Attempting to delete product ID: {}", id);
+        if (!productRepository.existsById(id)) {
+            log.error("Delete failed: Product ID {} not found", id);
+            throw new ProductNotFoundException(id);
+        }
+        productRepository.deleteById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponseDTO findById(Long id) {
-        ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-        return mapToDTO(product);
+        return productRepository.findById(id)
+                .map(productMapper::toDto)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponseDTO> findAll() {
         return productRepository.findAll()
                 .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    // MAPPERS
-    private ProductEntity mapToEntity(ProductRequestDTO dto) {
-        ProductEntity product = new ProductEntity();
-        product.setName(dto.getName());
-        product.setCode(dto.getCode());
-        product.setPrice(dto.getPrice());
-        product.setStock(dto.getStock());
-        product.setCategory(dto.getCategory());
-        return product;
-    }
-
-    private ProductResponseDTO mapToDTO(ProductEntity entity) {
-        ProductResponseDTO dto = new ProductResponseDTO();
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-        dto.setCode(entity.getCode());
-        dto.setPrice(entity.getPrice());
-        dto.setStock(entity.getStock());
-        dto.setCategory(entity.getCategory());
-        return dto;
+                .map(productMapper::toDto)
+                .toList();
     }
 }
