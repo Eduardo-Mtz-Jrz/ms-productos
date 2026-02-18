@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final UserClient userClient; // <--- Inyección del cliente Feign
+    private final UserClient userClient;
 
     // CREATE
     @Override
@@ -34,12 +34,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) { // <-- Agregamos userId
 
-        // 1. Llamada a MS USUARIOS vía Feign
-        Boolean isAdmin = userClient.isAdmin(userId);
+        // 1. Llamada a MS USUARIOS vía Feigg
+        //IMPORTANTE: cambiar variable para pruebas locales.
+        //Boolean isAdmin = userClient.isAdmin(userId);
+        Boolean isAdmin = false;
 
         // 2. Validación de respuesta booleana
         if (isAdmin == null || !isAdmin) {
-            throw new RuntimeException("Acceso denegado: Se requieren permisos de ADMIN para modificar productos.");
+            throw new RuntimeException("Access Denied.");
         }
 
         ProductEntity existingProduct = productRepository.findById(id)
@@ -54,8 +56,7 @@ public class ProductServiceImpl implements ProductService {
         return mapToDTO(productRepository.save(existingProduct));
     }
 
-    // ... (Los demás métodos DELETE, findById y findAll se quedan igual)
-
+    //DELETE
     @Override
     public void delete(Long id) {
         ProductEntity product = productRepository.findById(id)
