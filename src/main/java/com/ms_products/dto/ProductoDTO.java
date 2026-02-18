@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:src/main/java/com/ms_products/dto/ProductoDTO.java
 package com.ms_products.ms_products.dto;
+========
+package com.ms_products.ms_products.entity;
+>>>>>>>> 654107a (Cliente_Feing1):src/main/java/com/ms_products/ms_products/entity/ProductoDTO.java
 
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
