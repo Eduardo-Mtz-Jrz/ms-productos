@@ -16,21 +16,21 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Implementation of the {@link ProductService} providing business
- * logic for product management.
+ * Implementation of {@link ProductService} providing business logic
+ * for product management.
  * <p>
- * This service handles CRUD operations, integrates with external
- * user validation services,
- * and manages data persistence through {@link ProductRepository}.
+ * This service handles CRUD operations, integrates with external user
+ * validation services, and manages data persistence via the
+ * {@link ProductRepository}.
  * </p>
  *
- * @author YourName
+ * @author Angel Gabriel
  * @version 1.0
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ProductServiceImpl implements com.ms_products.service.ProductService {
+public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final UserClient userClient;
@@ -39,8 +39,7 @@ public class ProductServiceImpl implements com.ms_products.service.ProductServic
     /**
      * Creates and persists a new product in the database.
      *
-     * @param request Data transfer object containing the product
-     *                details to be saved.
+     * @param request DTO containing the product details to be saved.
      * @return {@link ProductResponseDTO} representing the newly
      * created product.
      * @throws IllegalStateException if a product with the same code
@@ -64,22 +63,22 @@ public class ProductServiceImpl implements com.ms_products.service.ProductServic
      * Updates an existing product after verifying administrative
      * privileges.
      *
-     * @param id The unique identifier of the product to update.
+     * @param id      The unique identifier of the product to update.
      * @param request Updated product data.
-     * @param userId ID of the user performing the update for
-     *              authorization check.
+     * @param userId  ID of the user performing the update for
+     * authorization check.
      * @return The updated {@link ProductResponseDTO}.
-     * @throws UnauthorizedException if the user does not have
+     * @throws UnauthorizedException    if the user does not have
      * administrative rights.
      * @throws ProductNotFoundException if no product is found
      * with the provided ID.
      */
     @Override
     @Transactional
-    public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) {
+    public ProductResponseDTO update(Long id, ProductRequestDTO request,
+                                     Long userId) {
         log.info("Update requested for ID: {} by user: {}", id, userId);
 
-        // Security check via UserClient (External Microservice)
         if (!Boolean.TRUE.equals(userClient.isAdmin(userId))) {
             log.warn("Access denied for user {}", userId);
             throw new UnauthorizedException("User does not have admin privileges");
@@ -113,7 +112,8 @@ public class ProductServiceImpl implements com.ms_products.service.ProductServic
      *
      * @param id The ID of the product to find.
      * @return The found {@link ProductResponseDTO}.
-     * @throws ProductNotFoundException if the ID is not present in the database.
+     * @throws ProductNotFoundException if the ID is not present
+     * in the database.
      */
     @Override
     @Transactional(readOnly = true)
