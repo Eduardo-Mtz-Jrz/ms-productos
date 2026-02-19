@@ -9,3 +9,4 @@ product.price.min=The minimum allowed price is {value}.
 product.stock.min=Stock cannot be negative.
 product.category.notblank=Category is required.
 product.category.size=Category must be between {min} and {max} characters.
+dto.idemporequest.typeenum=The value of the capo type is not valid.

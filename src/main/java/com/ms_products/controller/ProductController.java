@@ -1,5 +1,6 @@
 package com.ms_products.controller;
 
+import com.ms_products.dto.IdempotenteRequestDTO;
 import com.ms_products.dto.ProductRequestDTO;
 import com.ms_products.dto.ProductResponseDTO;
 import com.ms_products.repository.IInventoryIdempotenteRepository;
@@ -28,18 +29,16 @@ import java.util.List;
  * </p>
  */
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 @Tag(name = "Product Management", description = "Endpoints for managing the product catalog and stock levels")
 public class ProductController {
 
     private final ProductService productService;
 
-    private final IInventoryIdempotenteRepository inventoryIdempotenteRepository;
-
-    @PostMapping("/")
-    public ResponseEntity<Boolean> registerOrder(@PathVariable(name = "id") Long id){
-        return ;
+    @PostMapping("/{id}/inventory/movement")
+    public ResponseEntity<Boolean> registerOrder(@PathVariable(name = "id") Long id,@RequestBody IdempotenteRequestDTO order){
+        return ResponseEntity.ok(productService.registerOrder(order));
     }
 
     @Operation(summary = "Retrieve all products", description = "Returns a complete list of products available in the system.")
