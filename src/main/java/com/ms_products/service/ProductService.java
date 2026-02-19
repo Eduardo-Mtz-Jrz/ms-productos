@@ -68,4 +68,10 @@ public interface ProductService {
      * @return A {@link List} of products with low stock levels.
      */
     List<ProductResponseDTO> findLowStock(Integer threshold);
+
+
+    /**
+     *
+     */
+    ProductResponseDTO processOrderWithIdempotency(String idempontencykey, OrderRequestDTO request);
 }
