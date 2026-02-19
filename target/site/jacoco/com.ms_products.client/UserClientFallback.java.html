@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserClientFallback.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-products</a> &gt; <a href="index.source.html" class="el_package">com.ms_products.client</a> &gt; <span class="el_source">UserClientFallback.java</span></div><h1>UserClientFallback.java</h1><pre class="source lang-java linenums">package com.ms_products.client;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+/**
+ * Fallback implementation for {@link UserClient} using the Circuit
+ * Breaker pattern.
+ * &lt;p&gt;
+ * This class provides graceful degradation when the User Microservice
+ * is unavailable. It implements a &quot;fail-safe&quot; security approach by
+ * denying administrative privileges by default during communication
+ * failures.
+ * &lt;/p&gt;
+ *
+ * @author Angel Gabriel
+ * @version 1.0
+ */
+<span class="nc" id="L19">@Slf4j</span>
+@Component
+<span class="nc" id="L21">public class UserClientFallback implements UserClient {</span>
+
+    /**
+     * Provides a default security response when the user service call
+     * fails.
+     * &lt;p&gt;
+     * For security reasons, this method returns {@code false} if the
+     * circuit is open or the remote service is unreachable, ensuring
+     * that unauthorized users cannot gain administrative access due
+     * to system errors.
+     * &lt;/p&gt;
+     *
+     * @param userId Unique identifier of the user that was being
+     * validated.
+     * @return Always {@code false} as a safe default during failures.
+     */
+    @Override
+    public Boolean isAdmin(Long userId) {
+<span class="nc" id="L39">        log.error(&quot;Error calling ms-usuarios for userId: {}. &quot; +</span>
+                &quot;Defaulting to false.&quot;, userId);
+<span class="nc" id="L41">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-products</a> &gt; <a href="index.source.html" class="el_package">com.ms_products.service</a> &gt; <span class="el_source">ProductServiceImpl.java</span></div><h1>ProductServiceImpl.java</h1><pre class="source lang-java linenums">package com.ms_products.service;
+
+import com.ms_products.client.UserClient;
+import com.ms_products.dto.ProductRequestDTO;
+import com.ms_products.dto.ProductResponseDTO;
+import com.ms_products.entity.ProductEntity;
+import com.ms_products.exception.ProductNotFoundException;
+import com.ms_products.exception.UnauthorizedException;
+import com.ms_products.mapper.ProductMapper;
+import com.ms_products.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * Implementation of {@link ProductService} for managing product lifecycle.
+ * Includes caching strategies and admin-level validation.
+ *
+ * @author Angel Gabriel
+ */
+<span class="fc" id="L26">@Slf4j</span>
+@Service
+@RequiredArgsConstructor
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final UserClient userClient;
+    private final ProductMapper productMapper;
+
+    private static final String CACHE_VALUE = &quot;products&quot;;
+
+    @Override
+    @Transactional
+    public ProductResponseDTO save(ProductRequestDTO request) {
+<span class="fc" id="L40">        log.info(&quot;Process: Create product with code: {}&quot;, request.getCode());</span>
+
+<span class="fc" id="L42">        productRepository.findByCode(request.getCode())</span>
+<span class="fc" id="L43">                .ifPresent(p -&gt; {</span>
+<span class="fc" id="L44">                    log.error(&quot;Conflict: Product code {} already exists&quot;, request.getCode());</span>
+<span class="fc" id="L45">                    throw new IllegalStateException(&quot;The product code is already registered in the system&quot;);</span>
+                });
+
+<span class="fc" id="L48">        ProductEntity entity = productMapper.toEntity(request);</span>
+<span class="fc" id="L49">        return productMapper.toDto(productRepository.save(entity));</span>
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = CACHE_VALUE, key = &quot;#id&quot;)
+    public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) {
+<span class="fc" id="L56">        log.info(&quot;Process: Update product ID: {} by User: {}&quot;, id, userId);</span>
+
+<span class="fc" id="L58">        checkAdminPrivileges(userId);</span>
+
+<span class="fc" id="L60">        ProductEntity existingProduct = productRepository.findById(id)</span>
+<span class="fc" id="L61">                .orElseThrow(() -&gt; new ProductNotFoundException(id));</span>
+
+<span class="fc" id="L63">        productMapper.updateEntityFromDto(request, existingProduct);</span>
+<span class="fc" id="L64">        return productMapper.toDto(productRepository.save(existingProduct));</span>
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = CACHE_VALUE, key = &quot;#id&quot;)
+    public void delete(Long id) {
+<span class="fc" id="L71">        log.info(&quot;Process: Delete product ID: {}&quot;, id);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (!productRepository.existsById(id)) {</span>
+<span class="fc" id="L73">            throw new ProductNotFoundException(id);</span>
+        }
+<span class="fc" id="L75">        productRepository.deleteById(id);</span>
+<span class="fc" id="L76">    }</span>
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = CACHE_VALUE, key = &quot;#id&quot;)
+    public ProductResponseDTO findById(Long id) {
+<span class="fc" id="L82">        log.debug(&quot;Database fetch for product ID: {}&quot;, id);</span>
+<span class="fc" id="L83">        return productRepository.findById(id)</span>
+<span class="fc" id="L84">                .map(productMapper::toDto)</span>
+<span class="fc" id="L85">                .orElseThrow(() -&gt; new ProductNotFoundException(id));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;ProductResponseDTO&gt; findAll() {
+<span class="fc" id="L91">        return productRepository.findAll().stream()</span>
+<span class="fc" id="L92">                .map(productMapper::toDto)</span>
+<span class="fc" id="L93">                .toList();</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;ProductResponseDTO&gt; findLowStock(Integer threshold) {
+<span class="fc" id="L99">        log.info(&quot;Filtering products with stock below threshold: {}&quot;, threshold);</span>
+<span class="fc" id="L100">        return productRepository.findByStockLessThan(threshold).stream()</span>
+<span class="fc" id="L101">                .map(productMapper::toDto)</span>
+<span class="fc" id="L102">                .toList();</span>
+    }
+
+    /**
+     * Validates if the user has administrative rights through UserClient.
+     * @param userId The user ID to verify.
+     * @throws UnauthorizedException if the user is not an admin or service fails.
+     */
+    private void checkAdminPrivileges(Long userId) {
+<span class="fc" id="L111">        Boolean isAdmin = userClient.isAdmin(userId);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (!Boolean.TRUE.equals(isAdmin)) {</span>
+<span class="fc" id="L113">            log.warn(&quot;Security Alert: Unauthorized access attempt by user {}&quot;, userId);</span>
+<span class="fc" id="L114">            throw new UnauthorizedException(&quot;User lacks administrative permissions&quot;);</span>
+        }
+<span class="fc" id="L116">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
