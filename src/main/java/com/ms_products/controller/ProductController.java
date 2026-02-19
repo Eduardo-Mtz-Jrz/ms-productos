@@ -34,6 +34,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+    public ResponseEntity<>
+
     @Operation(summary = "Retrieve all products", description = "Returns a complete list of products available in the system.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved product list")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
