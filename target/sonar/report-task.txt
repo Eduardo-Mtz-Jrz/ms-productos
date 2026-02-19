@@ -1,0 +1,6 @@
+projectKey=ms_productos1
+serverUrl=http://localhost:9000
+serverVersion=26.2.0.119303
+dashboardUrl=http://localhost:9000/dashboard?id=ms_productos1
+ceTaskId=b264b974-e707-46e4-a270-6ee08421ea6b
+ceTaskUrl=http://localhost:9000/api/ce/task?id=b264b974-e707-46e4-a270-6ee08421ea6b

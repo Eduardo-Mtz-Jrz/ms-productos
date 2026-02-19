@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-products</a> &gt; <a href="index.source.html" class="el_package">com.ms_products.exception</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package com.ms_products.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Global exception handler for the product microservice.
+ * &lt;p&gt;
+ * Standardizes all error responses to ensure security and consistency.
+ * Captures business exceptions, validation errors, and unexpected server failures.
+ * &lt;/p&gt;
+ */
+@ControllerAdvice
+<span class="fc" id="L23">public class GlobalExceptionHandler {</span>
+
+    private static final String TIMESTAMP = &quot;timestamp&quot;;
+    private static final String MESSAGE = &quot;message&quot;;
+    private static final String STATUS = &quot;status&quot;;
+
+    /**
+     * Handles validation errors from @Valid annotated DTOs.
+     * Prevents 500 errors when the client sends invalid data.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;Object&gt; handleValidationExceptions(MethodArgumentNotValidException ex) {
+<span class="fc" id="L35">        String details = ex.getBindingResult()</span>
+<span class="fc" id="L36">                .getFieldErrors()</span>
+<span class="fc" id="L37">                .stream()</span>
+<span class="fc" id="L38">                .map(FieldError::getDefaultMessage)</span>
+<span class="fc" id="L39">                .collect(Collectors.joining(&quot;, &quot;));</span>
+
+<span class="fc" id="L41">        return buildResponse(&quot;Validation failed: &quot; + details, HttpStatus.BAD_REQUEST);</span>
+    }
+
+    /**
+     * Handles cases where a requested product does not exist.
+     */
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity&lt;Object&gt; handleProductNotFound(ProductNotFoundException ex) {
+<span class="fc" id="L49">        return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND);</span>
+    }
+
+    /**
+     * Handles security exceptions for unauthorized operations.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity&lt;Object&gt; handleUnauthorized(UnauthorizedException ex) {
+<span class="fc" id="L57">        return buildResponse(ex.getMessage(), HttpStatus.FORBIDDEN);</span>
+    }
+
+    /**
+     * Fallback handler for any other unhandled exceptions.
+     * Prevents leaking sensitive stack traces to the client.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;Object&gt; handleGlobalException(Exception ex) {
+<span class="nc" id="L66">        return buildResponse(&quot;An unexpected error occurred on the server.&quot;, HttpStatus.INTERNAL_SERVER_ERROR);</span>
+    }
+
+    /**
+     * Utility method to construct a consistent JSON error body.
+     */
+    private ResponseEntity&lt;Object&gt; buildResponse(String message, HttpStatus status) {
+<span class="fc" id="L73">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L74">        body.put(TIMESTAMP, LocalDateTime.now());</span>
+<span class="fc" id="L75">        body.put(MESSAGE, message);</span>
+<span class="fc" id="L76">        body.put(STATUS, status.value());</span>
+<span class="fc" id="L77">        return new ResponseEntity&lt;&gt;(body, status);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

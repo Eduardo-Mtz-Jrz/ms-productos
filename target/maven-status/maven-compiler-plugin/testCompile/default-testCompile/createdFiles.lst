@@ -1,0 +1,5 @@
+com\ms_products\service\controller\ProductControllerTest.class
+com\ms_products\service\mapper\ProductMapperTest.class
+com\ms_products\service\repository\ProductRepositoryTest.class
+com\ms_products\service\exception\GlobalExceptionHandlerTest.class
+com\ms_products\service\service\ProductServiceImplTest.class

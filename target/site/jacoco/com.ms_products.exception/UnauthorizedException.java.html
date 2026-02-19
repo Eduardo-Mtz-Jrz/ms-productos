@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnauthorizedException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-products</a> &gt; <a href="index.source.html" class="el_package">com.ms_products.exception</a> &gt; <span class="el_source">UnauthorizedException.java</span></div><h1>UnauthorizedException.java</h1><pre class="source lang-java linenums">package com.ms_products.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+/**
+ * Exception thrown when a user lacks the required authorization to
+ * perform an action.
+ * &lt;p&gt;
+ * This exception is mapped to HTTP 403 Forbidden, indicating that
+ * while the server understands the request, it refuses to authorize
+ * it (e.g., a non-admin attempting an administrative task).
+ * &lt;/p&gt;
+ *
+ * @author Angel Gabriel
+ * @version 1.0
+ */
+@ResponseStatus(HttpStatus.FORBIDDEN)
+public class UnauthorizedException extends RuntimeException {
+
+    /**
+     * Constructs a new exception with a custom detailed message.
+     *
+     * @param message The detailed error message describing the
+     * authorization failure.
+     */
+    public UnauthorizedException(String message) {
+<span class="fc" id="L28">        super(message);</span>
+<span class="fc" id="L29">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
