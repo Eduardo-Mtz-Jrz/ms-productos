@@ -2,31 +2,47 @@ package com.ms_products.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Global exception handler for the product microservice.
  * <p>
- * This class uses {@link ControllerAdvice} to intercept exceptions thrown by controllers
- * across the entire application, providing a standardized JSON error response.
+ * Standardizes all error responses to ensure security and consistency.
+ * Captures business exceptions, validation errors, and unexpected server failures.
  * </p>
- *
- * @author Angel Gabriel
- * @version 1.0
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String TIMESTAMP = "timestamp";
+    private static final String MESSAGE = "message";
+    private static final String STATUS = "status";
+
     /**
-     * Handles cases where a requested product does not exist in the database.
-     *
-     * @param ex The {@link ProductNotFoundException} thrown by the service layer.
-     * @return A {@link ResponseEntity} with a 404 Not Found status and error details.
+     * Handles validation errors from @Valid annotated DTOs.
+     * Prevents 500 errors when the client sends invalid data.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String details = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+
+        return buildResponse("Validation failed: " + details, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles cases where a requested product does not exist.
      */
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<Object> handleProductNotFound(ProductNotFoundException ex) {
@@ -34,11 +50,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles security exceptions when a user lacks the necessary permissions
-     * to perform a specific action (e.g., non-admin attempting an update).
-     *
-     * @param ex The {@link UnauthorizedException} thrown during permission validation.
-     * @return A {@link ResponseEntity} with a 403 Forbidden status and error details.
+     * Handles security exceptions for unauthorized operations.
      */
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Object> handleUnauthorized(UnauthorizedException ex) {
@@ -46,25 +58,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Utility method to construct a consistent error response structure.
-     * <p>
-     * The response body includes:
-     * <ul>
-     * <li><b>timestamp:</b> The exact time the error occurred.</li>
-     * <li><b>message:</b> A descriptive error message.</li>
-     * <li><b>status:</b> The HTTP status code value.</li>
-     * </ul>
-     * </p>
-     *
-     * @param message The error message to display to the client.
-     * @param status  The {@link HttpStatus} code to be returned.
-     * @return A formatted {@link ResponseEntity} containing the error map.
+     * Fallback handler for any other unhandled exceptions.
+     * Prevents leaking sensitive stack traces to the client.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleGlobalException(Exception ex) {
+        return buildResponse("An unexpected error occurred on the server.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Utility method to construct a consistent JSON error body.
      */
     private ResponseEntity<Object> buildResponse(String message, HttpStatus status) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("message", message);
-        body.put("status", status.value());
+        body.put(TIMESTAMP, LocalDateTime.now());
+        body.put(MESSAGE, message);
+        body.put(STATUS, status.value());
         return new ResponseEntity<>(body, status);
     }
 }

@@ -10,22 +10,18 @@ import com.ms_products.mapper.ProductMapper;
 import com.ms_products.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 /**
- * Implementation of {@link ProductService} providing business logic
- * for product management.
- * <p>
- * This service handles CRUD operations, integrates with external user
- * validation services, and manages data persistence via the
- * {@link ProductRepository}.
- * </p>
+ * Implementation of {@link ProductService} for managing product lifecycle.
+ * Includes caching strategies and admin-level validation.
  *
  * @author Angel Gabriel
- * @version 1.0
  */
 @Slf4j
 @Service
@@ -36,53 +32,30 @@ public class ProductServiceImpl implements ProductService {
     private final UserClient userClient;
     private final ProductMapper productMapper;
 
-    /**
-     * Creates and persists a new product in the database.
-     *
-     * @param request DTO containing the product details to be saved.
-     * @return {@link ProductResponseDTO} representing the newly
-     * created product.
-     * @throws IllegalStateException if a product with the same code
-     * already exists.
-     */
+    private static final String CACHE_VALUE = "products";
+
     @Override
     @Transactional
     public ProductResponseDTO save(ProductRequestDTO request) {
-        log.info("Attempting to save product: {}", request.getCode());
+        log.info("Process: Create product with code: {}", request.getCode());
 
-        if (productRepository.findByCode(request.getCode()).isPresent()) {
-            log.error("Save failed: Code {} exists", request.getCode());
-            throw new IllegalStateException("Product code already exists");
-        }
+        productRepository.findByCode(request.getCode())
+                .ifPresent(p -> {
+                    log.error("Conflict: Product code {} already exists", request.getCode());
+                    throw new IllegalStateException("The product code is already registered in the system");
+                });
 
-        ProductEntity product = productMapper.toEntity(request);
-        return productMapper.toDto(productRepository.save(product));
+        ProductEntity entity = productMapper.toEntity(request);
+        return productMapper.toDto(productRepository.save(entity));
     }
 
-    /**
-     * Updates an existing product after verifying administrative
-     * privileges.
-     *
-     * @param id      The unique identifier of the product to update.
-     * @param request Updated product data.
-     * @param userId  ID of the user performing the update for
-     * authorization check.
-     * @return The updated {@link ProductResponseDTO}.
-     * @throws UnauthorizedException    if the user does not have
-     * administrative rights.
-     * @throws ProductNotFoundException if no product is found
-     * with the provided ID.
-     */
     @Override
     @Transactional
-    public ProductResponseDTO update(Long id, ProductRequestDTO request,
-                                     Long userId) {
-        log.info("Update requested for ID: {} by user: {}", id, userId);
+    @CacheEvict(value = CACHE_VALUE, key = "#id")
+    public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) {
+        log.info("Process: Update product ID: {} by User: {}", id, userId);
 
-        if (!Boolean.TRUE.equals(userClient.isAdmin(userId))) {
-            log.warn("Access denied for user {}", userId);
-            throw new UnauthorizedException("User does not have admin privileges");
-        }
+        checkAdminPrivileges(userId);
 
         ProductEntity existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
@@ -91,48 +64,54 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toDto(productRepository.save(existingProduct));
     }
 
-    /**
-     * Deletes a product from the system by its ID.
-     *
-     * @param id The unique identifier of the product to be deleted.
-     * @throws ProductNotFoundException if the product does not exist.
-     */
     @Override
     @Transactional
+    @CacheEvict(value = CACHE_VALUE, key = "#id")
     public void delete(Long id) {
-        log.info("Attempting to delete ID: {}", id);
+        log.info("Process: Delete product ID: {}", id);
         if (!productRepository.existsById(id)) {
             throw new ProductNotFoundException(id);
         }
         productRepository.deleteById(id);
     }
 
-    /**
-     * Retrieves a specific product by its unique identifier.
-     *
-     * @param id The ID of the product to find.
-     * @return The found {@link ProductResponseDTO}.
-     * @throws ProductNotFoundException if the ID is not present
-     * in the database.
-     */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CACHE_VALUE, key = "#id")
     public ProductResponseDTO findById(Long id) {
+        log.debug("Database fetch for product ID: {}", id);
         return productRepository.findById(id)
                 .map(productMapper::toDto)
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
-    /**
-     * Retrieves all products currently stored in the system.
-     *
-     * @return A {@link List} of all products as DTOs.
-     */
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> findAll() {
         return productRepository.findAll().stream()
                 .map(productMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponseDTO> findLowStock(Integer threshold) {
+        log.info("Filtering products with stock below threshold: {}", threshold);
+        return productRepository.findByStockLessThan(threshold).stream()
+                .map(productMapper::toDto)
+                .toList();
+    }
+
+    /**
+     * Validates if the user has administrative rights through UserClient.
+     * @param userId The user ID to verify.
+     * @throws UnauthorizedException if the user is not an admin or service fails.
+     */
+    private void checkAdminPrivileges(Long userId) {
+        Boolean isAdmin = userClient.isAdmin(userId);
+        if (!Boolean.TRUE.equals(isAdmin)) {
+            log.warn("Security Alert: Unauthorized access attempt by user {}", userId);
+            throw new UnauthorizedException("User lacks administrative permissions");
+        }
     }
 }

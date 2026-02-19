@@ -1,10 +1,11 @@
+com\ms_products\entity\CategoryEntity$CategoryEntityBuilder.class
 com\ms_products\repository\ProductRepository.class
 com\ms_products\exception\ProductNotFoundException.class
 com\ms_products\exception\UnauthorizedException.class
+com\ms_products\entity\InventoryMovementsEntity.class
 com\ms_products\entity\ProductEntity$ProductEntityBuilder.class
 com\ms_products\config\ValidationConfig.class
 com\ms_products\exception\GlobalExceptionHandler.class
-com\ms_products\dto\ProductoDTO.class
 com\ms_products\dto\ProductRequestDTO.class
 com\ms_products\mapper\ProductMapper.class
 com\ms_products\client\UserClient.class
@@ -18,3 +19,5 @@ com\ms_products\controller\ProductController.class
 com\ms_products\dto\ProductRequestDTO$ProductRequestDTOBuilder.class
 com\ms_products\dto\ProductResponseDTO.class
 com\ms_products\MsProductsApplication.class
+com\ms_products\entity\CategoryEntity.class
+com\ms_products\entity\InventoryMovementsEntity$InventoryMovementsEntityBuilder.class

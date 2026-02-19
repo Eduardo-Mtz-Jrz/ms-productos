@@ -8,24 +8,20 @@ import java.util.List;
 /**
  * Service interface for managing product business logic.
  * <p>
- * This interface defines the contract for CRUD operations and administrative
- * validations for the product catalog.
+ * This interface defines the contract for CRUD operations, inventory
+ * queries, and administrative validations for the product catalog.
  * </p>
  *
  * @author Angel Gabriel
- * @version 1.0
+ * @version 1.1
  */
 public interface ProductService {
 
     /**
      * Creates and persists a new product in the system.
      *
-     * @param request DTO containing the details of the
-     *                product to be created.
-     * @return {@link ProductResponseDTO} the newly created
-     * product including its generated ID.
-     * @throws jakarta.validation.ValidationException if the
-     * request data is invalid.
+     * @param request DTO containing the details of the product to be created.
+     * @return {@link ProductResponseDTO} the newly created product.
      */
     ProductResponseDTO save(ProductRequestDTO request);
 
@@ -34,11 +30,8 @@ public interface ProductService {
      *
      * @param id      Unique identifier of the product to update.
      * @param request DTO containing the updated product details.
-     * @param userId  ID of the user performing the update (used
-     *                for admin privilege validation).
+     * @param userId  ID of the user performing the update.
      * @return {@link ProductResponseDTO} the updated product data.
-     * @throws RuntimeException if the product ID is not found or
-     * the user lacks permissions.
      */
     ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId);
 
@@ -46,7 +39,6 @@ public interface ProductService {
      * Permanently removes a product from the system.
      *
      * @param id Unique identifier of the product to delete.
-     * @throws RuntimeException if the product ID does not exist.
      */
     void delete(Long id);
 
@@ -55,7 +47,6 @@ public interface ProductService {
      *
      * @param id Unique identifier of the product.
      * @return {@link ProductResponseDTO} the found product data.
-     * @throws RuntimeException if no product is found with the given ID.
      */
     ProductResponseDTO findById(Long id);
 
@@ -63,7 +54,18 @@ public interface ProductService {
      * Retrieves a list of all products registered in the system.
      *
      * @return A {@link List} of {@link ProductResponseDTO}.
-     * Returns an empty list if no products exist.
      */
     List<ProductResponseDTO> findAll();
+
+    /**
+     * Retrieves products that have a stock level below the specified
+     * threshold.
+     * <p>
+     * This method is used for inventory alerts and low-stock reporting.
+     * </p>
+     *
+     * @param threshold The stock limit for filtering.
+     * @return A {@link List} of products with low stock levels.
+     */
+    List<ProductResponseDTO> findLowStock(Integer threshold);
 }

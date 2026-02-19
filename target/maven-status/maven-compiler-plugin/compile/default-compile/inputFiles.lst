@@ -2,9 +2,10 @@ C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\c
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\client\UserClientFallback.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\config\ValidationConfig.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\controller\ProductController.java
-C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\dto\ProductoDTO.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\dto\ProductRequestDTO.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\dto\ProductResponseDTO.java
+C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\entity\CategoryEntity.java
+C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\entity\InventoryMovementsEntity.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\entity\ProductEntity.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\exception\GlobalExceptionHandler.java
 C:\Users\ANGEL GABRIEL\IdeaProjects\ms-productos\src\main\java\com\ms_products\exception\ProductNotFoundException.java
