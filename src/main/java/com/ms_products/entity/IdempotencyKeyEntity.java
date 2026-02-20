@@ -13,11 +13,18 @@ import java.time.LocalDateTime;
 public class IdempotencyKeyEntity {
 
     @Id
-    @Column(name = "idempotency_key", nullable = false, length = 100)
-    private String key;
+    @Column(name = "idempotency_key", nullable = false)
+    private Long idempotencyKey; // Cambiado a Long para coincidir con el DTO
 
-    @Column(name = "response_id", nullable = false)
-    private Long responseId; // Aquí guardamos el ID del producto u orden creada
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private ProductEntity productEntity; // Cambiado para que sea el objeto, no solo el ID
+
+    @Column(name = "response_body", columnDefinition = "TEXT")
+    private String responseBody;
+
+    @Column(name = "status_code")
+    private int statusCode;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

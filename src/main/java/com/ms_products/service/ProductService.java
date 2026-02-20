@@ -1,5 +1,6 @@
 package com.ms_products.service;
 
+import com.ms_products.dto.IdempotencyRequestDTO; //
 import com.ms_products.dto.ProductRequestDTO;
 import com.ms_products.dto.ProductResponseDTO;
 
@@ -69,9 +70,15 @@ public interface ProductService {
      */
     List<ProductResponseDTO> findLowStock(Integer threshold);
 
-
     /**
+     * Registers an inventory order with idempotency control to prevent duplicate processing.
+     * <p>
+     * This method verifies the idempotency key, updates the product stock,
+     * and records the transaction in a single atomic operation.
+     * </p>
      *
+     * @param request DTO containing idempotency key, product ID, quantity, and movement type.
+     * @return {@link Boolean} true if the order was processed successfully or was already present.
      */
-    ProductResponseDTO processOrderWithIdempotency(String idempontencykey, OrderRequestDTO request);
+    Boolean registerOrder(IdempotencyRequestDTO request); //
 }
