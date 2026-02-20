@@ -1,9 +1,8 @@
 package com.ms_products.controller;
 
-import com.ms_products.dto.IdempotenteRequestDTO;
+import com.ms_products.dto.MovementRequestDTO;
 import com.ms_products.dto.ProductRequestDTO;
 import com.ms_products.dto.ProductResponseDTO;
-import com.ms_products.repository.IInventoryIdempotenteRepository;
 import com.ms_products.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,7 +36,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping("/{id}/inventory/movement")
-    public ResponseEntity<Boolean> registerOrder(@PathVariable(name = "id") Long id,@RequestBody IdempotenteRequestDTO order){
+    public ResponseEntity<Boolean> registerOrder(@PathVariable(name = "id") Long id,@RequestBody MovementRequestDTO order){
         return ResponseEntity.ok(productService.registerOrder(order));
     }
 

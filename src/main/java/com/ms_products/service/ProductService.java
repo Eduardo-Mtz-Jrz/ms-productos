@@ -1,6 +1,6 @@
 package com.ms_products.service;
 
-import com.ms_products.dto.IdempotenteRequestDTO;
+import com.ms_products.dto.MovementRequestDTO;
 import com.ms_products.dto.ProductRequestDTO;
 import com.ms_products.dto.ProductResponseDTO;
 
@@ -26,7 +26,7 @@ public interface ProductService {
      */
     ProductResponseDTO save(ProductRequestDTO request);
 
-    Boolean registerOrder(IdempotenteRequestDTO idempotenteRequestDTO);
+    Boolean registerOrder(MovementRequestDTO idempotenteRequestDTO);
 
     /**
      * Updates an existing product's information.
