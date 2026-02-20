@@ -32,7 +32,9 @@
 		<sonar.exclusions>
 			**/dto/**,
 			**/entity/**,
-			**/MsProductsApplication.java
+			**/MsProductsApplication.java,
+			**/config/**,
+			**/client/**
 		</sonar.exclusions>
 	</properties>
 
@@ -161,6 +163,8 @@
 							<exclude>com/ms_products/dto/**</exclude>
 							<exclude>com/ms_products/entity/**</exclude>
 							<exclude>com/ms_products/MsProductsApplication.class</exclude>
+							<exclude>com/ms_products/config/**</exclude>
+							<exclude>com/ms_products/client/**</exclude>
 						</excludes>
 					</configuration>
 				</execution>

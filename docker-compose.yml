@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL para el Microservicio de Productos
+  mysql-productos:
+    image: mysql:8.0
+    container_name: mysql-productos
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ms_productsdb
+      MYSQL_USER: ${MYSQL_USER:-productos_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-productos_pass}
+      TZ: America/Mexico_City
+    ports:
+      - "3307:3306" # 3307 para tu Workbench, 3306 interno
+    volumes:
+      - mysql_productos_data:/var/lib/mysql
+      - ./scripts:/docker-entrypoint-initdb.d:ro # Aquí pones tu init.sql
+    networks:
+      - ms-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Microservicio de Productos (Tu Aplicación)
+  ms-productos-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ms-productos-app
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      # IMPORTANTE: Usamos el nombre del servicio y el puerto interno 3306
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-productos:3306/ms_productsdb?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-productos_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-productos_pass}
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      mysql-productos:
+        condition: service_healthy
+    networks:
+      - ms-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Adminer - Interfaz web para visualizar las tablas (Opcional pero útil)
+  adminer:
+    image: adminer:latest
+    container_name: adminer-productos
+    restart: always
+    ports:
+      - "8082:8080" # Cambiado a 8082 para no chocar con otros servicios
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql-productos
+    networks:
+      - ms-network
+    depends_on:
+      - mysql-productos
+
+volumes:
+  mysql_productos_data:
+    driver: local
+
+networks:
+  ms-network:
+    driver: bridge

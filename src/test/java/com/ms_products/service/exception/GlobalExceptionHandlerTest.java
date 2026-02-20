@@ -96,4 +96,17 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.message").value(errorMessage));
     }
+
+    @Test
+    @DisplayName("Should return 500 Internal Server Error for unhandled exceptions")
+    void handleGlobalExceptionTest() throws Exception {
+        when(productService.findAll()).thenThrow(new RuntimeException("Database connection failed"));
+
+        mockMvc.perform(get("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("An unexpected error occurred on the server."))
+                .andExpect(jsonPath("$.status").value(500));
+    }
+
 }

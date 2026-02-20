@@ -24,8 +24,10 @@ import java.util.List;
  * REST Controller for Product Management.
  * <p>
  * Handles HTTP requests for the product catalog, including inventory
- * checks and administrative updates.
+ * checks, administrative updates, and existence verification.
  * </p>
+ * * @author Angel Gabriel
+ * @version 1.2
  */
 @RestController
 @RequestMapping("/api/v1/products")
@@ -58,6 +60,19 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> getProductById(
             @Parameter(description = "ID of the product to be retrieved") @PathVariable Long id) {
         return ResponseEntity.ok(productService.findById(id));
+    }
+
+    /**
+     * Specialized endpoint to check product existence without throwing 404 errors.
+     * Useful for frontend validation or simple verification tasks.
+     */
+    @Operation(summary = "Verify product existence", description = "Checks if a product exists. Returns 1 for true and 0 for false.")
+    @ApiResponse(responseCode = "200", description = "Verification successful")
+    @GetMapping(value = "/exists/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Integer> checkProductExistence(
+            @Parameter(description = "ID of the product to verify") @PathVariable Long id) {
+        // Convert Boolean to 1 (true) or 0 (false)
+        return ResponseEntity.ok(productService.existsById(id) ? 1 : 0);
     }
 
     @Operation(summary = "Create a new product", description = "Persists a new product record. Validates unique code constraints.")
@@ -97,4 +112,19 @@ public class ProductController {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @PostMapping("/{id}/inventario/movimiento")
+    public ResponseEntity<String> updateInventory(
+            @PathVariable Long id,
+            @RequestParam Integer quantity,
+            @RequestBody @Valid ProductRequestDTO productDto
+    ) {
+        return productService.processInventoryMovement(id, quantity, productDto);
+    }
+
+
+
+
+
 }
