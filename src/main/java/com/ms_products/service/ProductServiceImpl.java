@@ -3,6 +3,7 @@ package com.ms_products.service;
 import com.ms_products.client.UserClient;
 import com.ms_products.dto.ProductRequestDTO;
 import com.ms_products.dto.ProductResponseDTO;
+import com.ms_products.dto.UserResponseDTO;
 import com.ms_products.entity.ProductEntity;
 import com.ms_products.exception.ProductNotFoundException;
 import com.ms_products.exception.UnauthorizedException;
@@ -19,9 +20,10 @@ import java.util.List;
 
 /**
  * Implementation of {@link ProductService} for managing product lifecycle.
- * Includes caching strategies and admin-level validation.
+ * Includes caching strategies and RBAC (Role-Based Access Control) validation.
  *
  * @author Angel Gabriel
+ * @version 1.2
  */
 @Slf4j
 @Service
@@ -33,11 +35,12 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
 
     private static final String CACHE_VALUE = "products";
+    private static final String ADMIN_ROLE = "ADMIN";
 
     @Override
     @Transactional
     public ProductResponseDTO save(ProductRequestDTO request) {
-        log.info("Process: Create product with code: {}", request.getCode());
+        log.info("Process: Creating product with code: {}", request.getCode());
 
         productRepository.findByCode(request.getCode())
                 .ifPresent(p -> {
@@ -53,8 +56,9 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CacheEvict(value = CACHE_VALUE, key = "#id")
     public ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId) {
-        log.info("Process: Update product ID: {} by User: {}", id, userId);
+        log.info("Process: Updating product ID: {} by User: {}", id, userId);
 
+        // RBAC Validation
         checkAdminPrivileges(userId);
 
         ProductEntity existingProduct = productRepository.findById(id)
@@ -68,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CacheEvict(value = CACHE_VALUE, key = "#id")
     public void delete(Long id) {
-        log.info("Process: Delete product ID: {}", id);
+        log.info("Process: Deleting product ID: {}", id);
         if (!productRepository.existsById(id)) {
             throw new ProductNotFoundException(id);
         }
@@ -103,15 +107,38 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Validates if the user has administrative rights through UserClient.
-     * @param userId The user ID to verify.
-     * @throws UnauthorizedException if the user is not an admin or service fails.
+     * Checks if a product exists in the database.
+     * This implementation provides a lightweight check to be used by the controller
+     * to return binary responses (1/0) instead of throwing exceptions.
+     *
+     * @param id Unique identifier of the product.
+     * @return true if the product exists, false otherwise.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean existsById(Long id) {
+        log.debug("Checking existence for product ID: {}", id);
+        return productRepository.existsById(id);
+    }
+
+    /**
+     * Validates if the user has administrative rights by comparing the retrieved role.
+     * @param userId The unique identifier of the user to verify.
+     * @throws UnauthorizedException if the user lacks ADMIN role or if the user is not found.
      */
     private void checkAdminPrivileges(Long userId) {
-        Boolean isAdmin = userClient.isAdmin(userId);
-        if (!Boolean.TRUE.equals(isAdmin)) {
-            log.warn("Security Alert: Unauthorized access attempt by user {}", userId);
-            throw new UnauthorizedException("User lacks administrative permissions");
+        //UserResponseDTO user = userClient.getUserById(userId);
+
+        UserResponseDTO user = new UserResponseDTO(userId, "UNKNOW");
+
+        // Fail-safe validation: Check for null response or incorrect role
+        if (user == null || !ADMIN_ROLE.equalsIgnoreCase(user.getRole())) {
+            log.warn("Security Alert: Unauthorized access attempt by user {}. Role found: {}",
+                    userId, (user != null ? user.getRole() : "UNKNOWN"));
+
+            throw new UnauthorizedException("User lacks administrative permissions to perform this action");
         }
+
+        log.info("Authorization successful: User {} verified with role {}", userId, user.getRole());
     }
 }

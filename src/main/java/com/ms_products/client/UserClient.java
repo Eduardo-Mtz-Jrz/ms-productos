@@ -1,19 +1,12 @@
 package com.ms_products.client;
 
+import com.ms_products.dto.UserResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 /**
- * Feign client for inter-service communication with the User Microservice.
- * <p>
- * This client enables the Product service to verify user roles and
- * permissions. It uses externalized configuration for service naming
- * and URLs to ensure environment flexibility.
- * </p>
- *
- * @author Angel Gabriel
- * @version 1.0
+ * Cliente Feign actualizado para obtener el perfil completo del usuario.
  */
 @FeignClient(
         name = "${services.ms-usuarios.name:ms-usuarios}",
@@ -23,16 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface UserClient {
 
     /**
-     * Checks if a specific user has administrative privileges.
-     * <p>
-     * This endpoint is crucial for validating write/update operations
-     * within the product catalog that are restricted to admin users.
-     * </p>
-     *
-     * @param userId Unique identifier of the user to be checked.
-     * @return {@code true} if the user has an ADMIN role, {@code false}
-     * otherwise.
+     * Obtiene los detalles del usuario, incluyendo su rol.
+     * @param userId ID del usuario a consultar.
+     * @return Objeto con id y role.
      */
-    @GetMapping("/api/users/isAdmin/{userId}")
-    Boolean isAdmin(@PathVariable("userId") Long userId);
+    @GetMapping("/api/users/{userId}")
+    UserResponseDTO getUserById(@PathVariable("userId") Long userId);
 }

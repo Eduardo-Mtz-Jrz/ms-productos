@@ -1,6 +1,0 @@
-projectKey=ms-products
-serverUrl=http://localhost:9000
-serverVersion=26.2.0.119303
-dashboardUrl=http://localhost:9000/dashboard?id=ms-products
-ceTaskId=4ea9fad6-a315-43cc-9a8c-f18c7aee1854
-ceTaskUrl=http://localhost:9000/api/ce/task?id=4ea9fad6-a315-43cc-9a8c-f18c7aee1854

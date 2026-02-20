@@ -13,7 +13,7 @@ import java.util.List;
  * </p>
  *
  * @author Angel Gabriel
- * @version 1.1
+ * @version 1.2
  */
 public interface ProductService {
 
@@ -27,10 +27,13 @@ public interface ProductService {
 
     /**
      * Updates an existing product's information.
+     * <p>
+     * This operation requires administrative privileges validation.
+     * </p>
      *
      * @param id      Unique identifier of the product to update.
      * @param request DTO containing the updated product details.
-     * @param userId  ID of the user performing the update.
+     * @param userId  ID of the user performing the update for RBAC validation.
      * @return {@link ProductResponseDTO} the updated product data.
      */
     ProductResponseDTO update(Long id, ProductRequestDTO request, Long userId);
@@ -60,12 +63,21 @@ public interface ProductService {
     /**
      * Retrieves products that have a stock level below the specified
      * threshold.
-     * <p>
-     * This method is used for inventory alerts and low-stock reporting.
-     * </p>
      *
      * @param threshold The stock limit for filtering.
      * @return A {@link List} of products with low stock levels.
      */
     List<ProductResponseDTO> findLowStock(Integer threshold);
+
+    /**
+     * Checks if a product exists in the database.
+     * <p>
+     * This is a lightweight operation used to verify existence without
+     * fetching the complete entity or throwing exceptions.
+     * </p>
+     *
+     * @param id Unique identifier of the product.
+     * @return {@code true} if the product exists, {@code false} otherwise.
+     */
+    Boolean existsById(Long id);
 }

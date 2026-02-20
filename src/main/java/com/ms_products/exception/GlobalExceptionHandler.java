@@ -1,5 +1,6 @@
 package com.ms_products.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  * Captures business exceptions, validation errors, and unexpected server failures.
  * </p>
  */
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -38,6 +40,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
 
+        log.warn("Validation failed: {}", details);
         return buildResponse("Validation failed: " + details, HttpStatus.BAD_REQUEST);
     }
 
@@ -46,15 +49,27 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<Object> handleProductNotFound(ProductNotFoundException ex) {
+        log.error("Product not found: {}", ex.getMessage());
         return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     /**
-     * Handles security exceptions for unauthorized operations.
+     * Handles security exceptions for unauthorized operations (RBAC).
      */
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Object> handleUnauthorized(UnauthorizedException ex) {
+        log.error("Security violation: {}", ex.getMessage());
+        // Usamos FORBIDDEN (403) porque el usuario está autenticado pero no tiene permisos
         return buildResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * Handles business logic conflicts (e.g., duplicate product codes).
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Object> handleConflict(IllegalStateException ex) {
+        log.error("Conflict detected: {}", ex.getMessage());
+        return buildResponse(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     /**
@@ -63,6 +78,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(Exception ex) {
+        log.error("Unexpected error: ", ex);
         return buildResponse("An unexpected error occurred on the server.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

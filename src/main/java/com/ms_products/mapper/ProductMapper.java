@@ -9,57 +9,60 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 /**
- * Mapper interface for converting between Product entities and DTOs.
+ * Mapper interface for data transformation between Product entities and DTOs.
  * <p>
- * This interface uses MapStruct to generate the implementation code.
- * The {@code unmappedTargetPolicy = ReportingPolicy.IGNORE} is
- * applied to prevent
- * SonarQube warnings and compilation errors regarding missing
- * field mappings
- * between different data structures.
+ * This component uses MapStruct to generate high-performance mapping code
+ * at compile-time. It handles the conversion of the 'category' field and
+ * ensures data integrity by protecting sensitive fields like entity IDs.
  * </p>
- *
- * @author Angel Gabriel
- * @version 1.0
+ * +
+ * @version 1.1
  */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductMapper {
 
     /**
-     * Transforms a {@link ProductEntity} into a {@link ProductResponseDTO}.
+     * Converts a {@link ProductEntity} into a {@link ProductResponseDTO}.
+     * <p>
+     * Automatically maps common fields. The 'category' string from the entity
+     * is directly mapped to the response DTO.
+     * </p>
      *
      * @param entity The database entity to be converted.
-     * @return A DTO containing the product's response data.
+     * @return A DTO containing the product details for the client.
      */
     ProductResponseDTO toDto(ProductEntity entity);
 
     /**
-     * Transforms a {@link ProductRequestDTO} into a new
-     * {@link ProductEntity}.
+     * Transforms a {@link ProductRequestDTO} into a new {@link ProductEntity}.
      * <p>
-     * Note: The {@code id} field is ignored during mapping
-     * to ensure that
-     * the JPA provider handles the generation of the primary key.
+     * Security constraints:
+     * <ul>
+     * <li>The 'id' field is ignored to allow JPA's auto-generation strategy.</li>
+     * <li>The 'categories' Set is ignored to avoid conflicts with the simple
+     * String-based category classification.</li>
+     * </ul>
      * </p>
      *
-     * @param dto The DTO containing creation data.
-     * @return A new entity ready for persistence.
+     * @param dto The source DTO containing product creation data.
+     * @return A new entity instance ready for persistence.
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "categories", ignore = true)
     ProductEntity toEntity(ProductRequestDTO dto);
 
     /**
-     * Updates an existing {@link ProductEntity} instance with
-     * data from a {@link ProductRequestDTO}.
+     * Performs an in-place update of an existing {@link ProductEntity}
+     * using data from a {@link ProductRequestDTO}.
      * <p>
-     * This method performs an in-place update of the target entity.
-     * The {@code id} field is ignored to prevent accidental modification
-     * of the entity's identity.
+     * This method is used for PATCH/PUT operations where the entity's
+     * identity must be preserved while updating its attributes.
      * </p>
      *
-     * @param dto    The source DTO containing the new data.
-     * @param entity The target entity to be updated.
+     * @param dto    The source DTO with updated information.
+     * @param entity The target entity to be modified.
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "categories", ignore = true)
     void updateEntityFromDto(ProductRequestDTO dto, @MappingTarget ProductEntity entity);
 }
